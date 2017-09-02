@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8/">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+        crossorigin="anonymous/">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.min.js"></script>
+    <title>Crypto</title>
+</head>
+
+<body>
+    <style>
+        .container {
+            margin-top: 1rem;
+        }
+
+        .list-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .list-group-item:last-child {
+            border-bottom-right-radius: 0rem;
+            border-bottom-left-radius: 0rem;
+        }
+
+        .list-group-item:first-child {
+            border-top-left-radius: 0rem;
+            border-top-right-radius: 0rem;
+        }
+    </style>
+    <div class="container" id="crypto">
+        <div class="row">
+            <div class="col-3">
+                <!-- menu -->
+                <div class="row">
+                    <div class="col">
+                        <div class="list-group" v-for="algo in algos">
+                            <a href="#" class="list-group-item list-group-item-action" :class="{ active: isChosen(algo) }" @click="choose(algo, $event)">{{ algo }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-9">
+                <!-- source and result-->
+                <div class="row" v-show="algo !== null">
+                    <div class="col">
+                        <fieldset class="form-group">
+                            <label for="source" class="h6">Source:</label>
+                            <textarea rows="5" class="form-control" id="source" v-model="source" ref="source" autofocus></textarea>
+                        </fieldset>
+                        <fieldset>
+                            <label for="result" class="h6">Result:</label>
+                            <div class="input-group">
+                                <input type="search" id="result" class="form-control" v-model="hashed" disabled/>
+                                <span class="input-group-btn" v-if="copySupported === true" @click="copy()">
+                                    <button id="btn-copy" class="btn btn-primary" type="button" data-content="Copied!" data-placement="bottom" data-trigger="manual" :disabled="!copyable">Copy</button>
+                                </span>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+        crossorigin="anonymous"></script>
+    <script>
+        $('#btn-copy').popover();
+        let crypto = new Vue({
+            el: '#crypto',
+            data: {
+                algos: [
+                    'SHA-1',
+                    'SHA-256',
+                    'SHA-512'
+                ],
+                algo: null,
+                source: ''
+            },
+            created: function () {
+                this.algos.sort();
+            },
+            computed: {
+                hashed: function () {
+                    if (this.algo === null || this.source === '')
+                        return '';
+                    let encryptor = new jsSHA(this.algo, 'TEXT');
+                    encryptor.update(this.source);
+                    return encryptor.getHash('HEX');
+                },
+                copySupported: function () {
+                    return document.queryCommandSupported('copy');
+                },
+                copyable: function () {
+                    return this.hashed !== '';
+                }
+            },
+            methods: {
+                isChosen: function (algo) {
+                    return this.algo === algo;
+                },
+                choose: function (algo, event) {
+                    this.algo = algo;
+                    this.$nextTick(function () {
+                        this.$refs.source.focus();
+                    })
+                },
+                copy: function () {
+                    let copyTextArea = document.createElement("textarea");
+                    try {
+                        copyTextArea.value = this.hashed;
+                        document.body.appendChild(copyTextArea);
+                        copyTextArea.select();
+                        if (document.execCommand('copy')) {
+                            $("#btn-copy").popover('show');
+                            setTimeout(function () {
+                                $("#btn-copy").popover('hide');
+                            }, 800);
+                        }
+                    } catch (err) {
+                    } finally {
+                        document.body.removeChild(copyTextArea);
+                        this.$refs.source.focus();
+                    }
+                }
+            }
+        })
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsSHA/2.3.1/sha.js"></script>
+</body>
+
+</html>

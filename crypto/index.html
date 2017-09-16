@@ -51,6 +51,10 @@
                             <label for="source" class="h6">Source:</label>
                             <textarea rows="5" class="form-control" id="source" v-model="source" ref="source" autofocus></textarea>
                         </fieldset>
+                        <fieldset class="form-group">
+                            <label for="hmackey" class="h6">HMAC key (optional):</label>
+                            <input type="text" id="hmackey" class="form-control" v-model="hmackey"/>
+                        </fieldset>
                         <fieldset>
                             <label for="result" class="h6">Result:</label>
                             <div class="input-group">
@@ -83,7 +87,8 @@
                     'SHA-512'
                 ],
                 algo: null,
-                source: ''
+                source: '',
+                hmackey: ''
             },
             created: function () {
                 this.algos.sort();
@@ -93,8 +98,11 @@
                     if (this.algo === null || this.source === '')
                         return '';
                     let encryptor = new jsSHA(this.algo, 'TEXT');
+                    let isHMAC = this.hmackey !== null && this.hmackey !== '';
+                    if (this.hmackey !== null && this.hmackey !== '')
+                        encryptor.setHMACKey(this.hmackey, "TEXT");
                     encryptor.update(this.source);
-                    return encryptor.getHash('HEX');
+                    return isHMAC ? encryptor.getHMAC("HEX") : encryptor.getHash('HEX');
                 },
                 copySupported: function () {
                     return document.queryCommandSupported('copy');
